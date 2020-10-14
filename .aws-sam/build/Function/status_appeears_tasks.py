@@ -32,10 +32,11 @@ def lambda_handler(event, context):
                         headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                  'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                        body=json.dumps({'message': "missing json parameters"}), isBase64Encoded='false')
+                        body=json.dumps({'error': "missing json parameters"}), isBase64Encoded='false')
 
     #    "dataset": "precipitation", "org_unit": "district", "agg_period": "daily", "start_date": "1998-08-21T17:38:27Z",
 #    "end_date": "1998-09-21T17:38:27Z", "data_element_id": "fsdfrw345dsd"
+    #print(event)
     token = event['appeears_token']
     tasks = event['tasks']
     if "appeears_url" in event:
@@ -70,12 +71,12 @@ def lambda_handler(event, context):
         return dict(statusCode='200', headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                                'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                    body=json.dumps({'message': "Error checking appeears task status "}), isBase64Encoded='false')
+                    body=json.dumps({'error': "Error checking appeears task status "}), isBase64Encoded='false')
 
-    print(id_status)
+    #print(id_status)
 
     return dict(statusCode='200', headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                            'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                            'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                body=json.dumps(id_status), isBase64Encoded='false')
+                body=json.dumps({'task_list':id_status}), isBase64Encoded='false')
 

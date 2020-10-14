@@ -1,28 +1,20 @@
 import cgi
 import os
-import sys
-import json
+import traceback
 from csv import DictReader
 
-import urllib3
-import certifi
 import requests
-from time import sleep
 import boto3 as boto3
-import string
 import json
-import random
-from datetime import datetime
-
-#from util import load_json_from_s3, update_status_on_s3
 from appeears.appeears_util import get, post
 
-appeears_url = "https://lpdaacsvc.cr.usgs.gov/appeears/api/"
-
+#this_api = "https://8rgnpf3jfd.execute-api.us-east-1.amazonaws.com/default/start_appeears_tasks"
 s3 = boto3.resource(
     's3')
 
 def lambda_handler(event, context):
+
+    appeears_url = "https://lpdaacsvc.cr.usgs.gov/appeears/api/"
 
     if 'body' in event:
         try:
@@ -32,7 +24,7 @@ def lambda_handler(event, context):
                         headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                  'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                        body=json.dumps({'message': "missing json parameters"}), isBase64Encoded='false')
+                        body=json.dumps({'error': "missing json parameters"}), isBase64Encoded='false')
 
     #    "dataset": "precipitation", "org_unit": "district", "agg_period": "daily", "start_date": "1998-08-21T17:38:27Z",
 #    "end_date": "1998-09-21T17:38:27Z", "data_element_id": "fsdfrw345dsd"
@@ -57,11 +49,25 @@ def lambda_handler(event, context):
             org_unit_id = task['org_unit_id']
             task_id = task['task_id']
             print("downloading ", name)
+            bundle = get(appeears_url +'bundle/'+task_id, hdrs, 30.0).json()  # Call API and return bundle contents for the task_id as json
+            csv_found = False
+            filename = ''
+            for file in bundle['files']:
+                #print('file',file)
+                if file['file_name'].endswith(csv_file):
+                    file_id = file['file_id']  # Fill dictionary with file_id as keys and file_name as values
+                    csv_found=True
+            if not csv_found:
+                return dict(statusCode='200',
+                            headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
+                                     'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+                                     'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
+                            body=json.dumps({'error': "Statistics file not found "}), isBase64Encoded='false')
 
-            download_response = requests.get(appeears_url + 'bundle/' + task_id + '/' + csv_file,
+            download_response = requests.get(appeears_url + 'bundle/' + task_id + '/' + file_id,
                                                  stream=True)  # Get a stream to the bundle file
             download_response.raise_for_status()
-            filename = os.path.basename(cgi.parse_header(download_response.headers['Content-Disposition'])[1][
+            filename = '/tmp/'+os.path.basename(cgi.parse_header(download_response.headers['Content-Disposition'])[1][
                                                 'filename'])  # Parse the name from Content-Disposition header
             with open(filename, 'wb') as fp:  # Write file to dest dir
                 for data in download_response.iter_content(chunk_size=8192):
@@ -93,16 +99,17 @@ def lambda_handler(event, context):
                                   'orgUnit': org_unit_id, 'value': value}
                     outputJson.append(jsonRecord)
 
-        print(outputJson)
+        #print(outputJson)
 
         print("Downloading complete!")
 
     except Exception as e:
         print("Exception: ", e)
+        traceback.print_exc()
         return dict(statusCode='200', headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                                'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                    body=json.dumps({'message': "Error downloading appeears results "}), isBase64Encoded='false')
+                    body=json.dumps({'error': "Error downloading appeears results "}), isBase64Encoded='false')
 
     #print(task_list)
 
@@ -110,5 +117,5 @@ def lambda_handler(event, context):
     return dict(statusCode='200', headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                            'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                            'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                body=json.dumps(outputJson), isBase64Encoded='false')
+                body=json.dumps({'result':outputJson}), isBase64Encoded='false')
 

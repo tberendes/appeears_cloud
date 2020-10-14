@@ -9,8 +9,6 @@ from time import sleep
 start_url = "https://8rgnpf3jfd.execute-api.us-east-1.amazonaws.com/default/start_appeears_tasks"
 status_url = "https://o1w0q7e4f8.execute-api.us-east-1.amazonaws.com/default/status_appeears_tasks"
 download_url = "https://ny74dq5nri.execute-api.us-east-1.amazonaws.com/default/download_appeears_results"
-# make token global
-token = ''
 
 def post(url, json_payload, hdrs, timeout):
     task_response=requests.post(url, json=json_payload, headers=hdrs, timeout=timeout)
@@ -25,72 +23,60 @@ def get(url, hdrs, timeout):
 
 def main():
 
-    payload = "appeears_payload_MOD11B2.json"
+    payload = "appeears_payload_MOD11A2.json"
 
     with open(payload) as f:
         jsonData = json.load(f)
     f.close()
 
-    boundaries = jsonData['boundaries']
-    start_date = jsonData['start_date']
-    end_date = jsonData['end_date']
-    var_name = jsonData['var_name']
-    product = jsonData['product']
-
-    tasks = {}
-    org_unit_id = {}
-    data_element_id = jsonData["data_element_id"]
-    for boundary in boundaries:
-        geoJson = {}
-        geoJson['type'] = 'FeatureCollection'
-        features = []
-        feature_entry = {}
-        feature_entry['type'] = 'Feature'
-        feature_entry['properties'] = {'name': boundary['name'], 'id': boundary['id']}
-        feature_entry['geometry'] = boundary['geometry']
-        features.append(feature_entry)
-        geoJson['features'] = features
-        org_unit_id[boundary['name']]=boundary['id']
-        # set up tasks:
-        tasks[boundary['name']] = {'task_type': 'area',
-                'task_name': boundary['name'],
-                'params': {'dates': [{'startDate': start_date, 'endDate': end_date}],
-                           'layers': [{'layer': var_name, 'product': product}],
-                           #                'output': {'format': {'type': 'netcdf4'}, 'projection': 'native'},
-                           'output': {'format': {'type': 'geotiff'}, 'projection': 'native'},
-                           'geo': geoJson}}
-
-        #print(tasks[boundary['name']])
-
     try:
 
         # Post json to the API task service, return response as json
         hdrs = {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
-        task_response = post(start_url, jsonData, hdrs, 30.0)
+        print("Submitting AppEEARS order...")
+
+        task_response = post(start_url, jsonData, hdrs, 120.0)
         # print("task response", task_response.json())
         resp = task_response.json()
+
+        #resp = {'appeears_token': 'eIIhCKpiRYB6RPo2YtWhKSGCtZt-1W47USBv8FKY1NNSMNkyUxeIStL0Oyon-pDgNHp4qIgn2t6hTi86j_gEwQ', 'appeears_url': 'https://lpdaacsvc.cr.usgs.gov/appeears/api/', 'creation_time': '10-14-2020T17:49:48Z', 'startDate': '2018-03-01T00:00:00.000Z', 'endDate': '2018-03-31T00:00:00.000Z', 'product': 'MOD11A2.006', 'variable': 'LST_Day_1km', 'data_element_id': '8675309', 'tasks': [{'name': 'Bo', 'org_unit_id': 'O6uvpzGd5pu', 'task_id': '91aac4ce-0b0d-4d72-8247-98fa19788a41'}, {'name': 'Bombali', 'org_unit_id': 'fdc6uOvgoji', 'task_id': '84dea589-bf55-46f5-99fc-921e4ff4faab'}, {'name': 'Bonthe', 'org_unit_id': 'lc3eMKXaEfw', 'task_id': '4d976fc4-4ce1-4fd9-83d0-a1f0e7f710c3'}, {'name': 'Kailahun', 'org_unit_id': 'jUb8gELQApl', 'task_id': 'e1f1dc1c-4507-4e96-ab45-6f4bae68d69e'}, {'name': 'Kambia', 'org_unit_id': 'PMa2VCrupOd', 'task_id': '30135603-c56f-436d-b155-918613aeeb56'}, {'name': 'Kenema', 'org_unit_id': 'kJq2mPyFEHo', 'task_id': '00ce3fe7-a986-4d30-b8dd-a173c30c8ff8'}, {'name': 'Koinadugu', 'org_unit_id': 'qhqAxPSTUXp', 'task_id': 'c98b6b46-aa5e-42cb-9a0d-fcb5564ba6d3'}, {'name': 'Kono', 'org_unit_id': 'Vth0fbpFcsO', 'task_id': '6ea8839e-9411-4569-b484-1990ecab45ff'}, {'name': 'Moyamba', 'org_unit_id': 'jmIPBj66vD6', 'task_id': 'c2e36531-ff12-43e6-b33c-2c17d244629b'}, {'name': 'Port Loko', 'org_unit_id': 'TEQlaapDQoK', 'task_id': '7fc66dd5-7ac9-4c4f-9d1e-f05ccc915b76'}, {'name': 'Pujehun', 'org_unit_id': 'bL4ooGhyHRQ', 'task_id': '2b85f759-ac1c-4fd8-8238-dad03a85f865'}, {'name': 'Tonkolili', 'org_unit_id': 'eIQbndfxQMb', 'task_id': '65252d50-fdfa-4e95-bed6-ae1ba645ec0c'}, {'name': 'Western Area', 'org_unit_id': 'at6UHUQatSo', 'task_id': '002b3659-6a5b-4a04-a01c-29b19bb5c8b7'}]}
+        #resp = {'appeears_token': 'eIIhCKpiRYB6RPo2YtWhKSGCtZt-1W47USBv8FKY1NNSMNkyUxeIStL0Oyon-pDgNHp4qIgn2t6hTi86j_gEwQ', 'appeears_url': 'https://lpdaacsvc.cr.usgs.gov/appeears/api/', 'creation_time': '10-14-2020T21:25:28Z', 'startDate': '2018-03-01T00:00:00.000Z', 'endDate': '2018-03-31T00:00:00.000Z', 'product': 'MOD11A2.006', 'variable': 'LST_Day_1km', 'data_element_id': '8675309', 'tasks': [{'name': 'Bo', 'org_unit_id': 'O6uvpzGd5pu', 'task_id': 'a40fcaa2-d2b3-44db-8538-ae105ec4ae0a'}, {'name': 'Bombali', 'org_unit_id': 'fdc6uOvgoji', 'task_id': '3dbc6fd7-f98c-4aa8-90fb-05b73421c650'}, {'name': 'Bonthe', 'org_unit_id': 'lc3eMKXaEfw', 'task_id': 'c0d7beb7-a2c9-4401-9448-54392e5dd021'}, {'name': 'Kailahun', 'org_unit_id': 'jUb8gELQApl', 'task_id': 'b00a933c-221e-4159-b7cc-dce77ec20142'}, {'name': 'Kambia', 'org_unit_id': 'PMa2VCrupOd', 'task_id': '91446654-8ad9-4cf9-ba33-0420eadc1681'}, {'name': 'Kenema', 'org_unit_id': 'kJq2mPyFEHo', 'task_id': '0b81aa56-dbd6-46dc-ae0f-98c6eced0792'}, {'name': 'Koinadugu', 'org_unit_id': 'qhqAxPSTUXp', 'task_id': '5635b09d-36e5-4200-9200-12a7da17c403'}, {'name': 'Kono', 'org_unit_id': 'Vth0fbpFcsO', 'task_id': 'c2f65890-2253-4075-8844-4a73470342e9'}, {'name': 'Moyamba', 'org_unit_id': 'jmIPBj66vD6', 'task_id': '7d879683-2db5-4c77-8bb1-3800a901cb69'}, {'name': 'Port Loko', 'org_unit_id': 'TEQlaapDQoK', 'task_id': 'f8335461-165e-42c2-9e8b-dbedf620471e'}, {'name': 'Pujehun', 'org_unit_id': 'bL4ooGhyHRQ', 'task_id': 'ae061c48-4c31-476e-a36a-d501998854f6'}, {'name': 'Tonkolili', 'org_unit_id': 'eIQbndfxQMb', 'task_id': '55001179-d79b-423e-904f-a309d23abee9'}, {'name': 'Western Area', 'org_unit_id': 'at6UHUQatSo', 'task_id': '4cd8a04d-cb73-4f3f-801e-16457c68f890'}]}
+
+        if 'error' in resp.keys():
+            print("error starting AppEEARS order: ", resp['error'])
+            exit(-1)
+        print(resp)
         tasks = resp['tasks']
         token = resp['appeears_token']
-        appeears_url = resp['appears_url']
+        appeears_url = resp['appeears_url']
         data_element_id = resp['data_element_id']
+        product = resp['product']
 
+        #setup status_appeears_tasks json payload
+        statusTask = {'appeears_url': appeears_url, 'appeears_token': token, 'tasks': tasks}
+        print("Waiting for AppEEARS orders to finish...")
         # check status in loop
+        count = 0
         while True:
-            statusJson = {'appeears_url': appeears_url, 'appeears_token': token, 'tasks': tasks}
-            task_response = post(status_url, jsonData, hdrs, 30.0)
+            task_response = post(status_url, statusTask, hdrs, 120.0)
             # print("task response", task_response.json())
             statusJson = task_response.json()
+            if 'error' in statusJson.keys():
+                print("error checking AppEEARS order status: ", statusJson['error'])
+                exit(-1)
+            print(statusJson)
 
             #{'task_id': id, 'name': name, 'org_unit_id': org_unit_id, 'status': status}
             #req = requests.get(appeears_url + 'task/' + task_id, headers=hdrs)
             found_all = True
-            for task in statusJson:
+            for task in statusJson['task_list']:
                 if task['status']=='done':
                     continue
                 else:
                     found_all = False
                     break
             if found_all==True:
+                print("AppEEARS orders finished")
                 break
             sleep(5)
             count = count+1
@@ -99,144 +85,32 @@ def main():
                 print("request timed out ")
                 break;
 
+        # token = event['appeears_token']
+        # data_element_id = event['data_element_id']
+        # product = event['product']
+        # tasks = event['tasks']
+        # if "appeears_url" in event:
+        #     appeears_url = event['appeears_url']
+        # for task in tasks:
+        #     name = task['name']
+        #     org_unit_id = task['org_unit_id']
+        #     task_id = task['task_id']
+        # jsonRecord = {'dataElement': data_element_id, 'period': dateStr,
+        #               'orgUnit': org_unit_id, 'value': value}
 
-        task_id.append(id)
-        task_status[id] = False
-        task_id_to_name[id] = key
-
-        # r = requests.post(appeears_url + 'logout', data={}, headers=hdrs)
-        task_id=[]
-        task_status = {}
-        task_id_to_name = {}
-        for key,task in tasks.items():
-            print("task ",task)
-#            task_response = requests.post(appeears_url +'task', json=task, headers=hdrs, timeout=10.0)
-            task_response = post(appeears_url +'task', task, hdrs, 30.0)
-            #print("task response", task_response.json())
-            id=task_response.json()['task_id']
-            task_id.append(id)
-            task_status[id]=False
-            task_id_to_name[id] = key
-
-        # check for status of tasks
-        # Use while statement to ping the API every 2 seconds until a response of 'done' is returned
-        count = 0
-
-        while True:
-            #req = requests.get(appeears_url + 'task/' + task_id, headers=hdrs)
-            found_all = True
-            for id in task_id:
-                # skip completed task
-                if task_status[id]==True:
-                    continue
-                else:
-                    found_all = False
-                #req = requests.get(appeears_url + 'task/' + id, headers=hdrs, timeout=10.0)
-                req = get(appeears_url + 'task/' + id, hdrs, 30.0)
-                #print("request ",req)
-                status=req.json()['status']
-                #print("count ", count, " status: ",status)
-                if status == 'done':
-                    task_status[id]=True
-                    print("task ", task_id_to_name[id], " done")
-                    #break;
-                else: # at least one job not done, stop checking status
-                    break
-            if found_all==True:
-                break
-            sleep(2)
-            count = count+1
-            print("count ", count)
-            if count > 100:
-                print("request timed out with status: ", status)
-                break;
-        #print(requests.get(appeears_url +'task/'+task_id, headers=hdrs).json()['status'])
-
-        outputJson = []
-        # when finished download bundles
-        bundles={}
-        for id in task_id:
-            #bundles[id] = requests.get(appeears_url +'bundle/'+id, headers=hdrs).json()  # Call API and return bundle contents for the task_id as json
-            bundles[id] = get(appeears_url +'bundle/'+id, hdrs, 30.0).json()  # Call API and return bundle contents for the task_id as json
-        #bundles[id] = requests.get(appeears_url +'bundle/'+task_id, headers=hdrs).json()  # Call API and return bundle contents for the task_id as json
-
-        # extract filenames from bundle, download and process
-        csv_file = product.replace('.','-')+'-Statistics.csv'
-        for task_id,bundle in bundles.items():
-            files = {}
-            for file in bundle['files']:
-                files[file['file_id']] = file['file_name']  # Fill dictionary with file_id as keys and file_name as values
-
-            # download files
-            # set up output directory for each bundle based on task name
-            # replace spaces with "-"
-            destDir = outDir+'/'+str(task_id_to_name[task_id]).replace(' ','-')
-            # Set up output directory on local machine
-            if not os.path.exists(destDir):
-                os.makedirs(destDir)
-            found_stats = False
-            for file in files:
-                #print("downloading ", file)
-                # only download csv statistic files
-                if files[file]!=csv_file:
-                    continue
-                else:
-                    found_stats=True
-                print("downloading ", files[file])
-                # download only .csv statistics file, set flag if found
-
-                download_response = requests.get(appeears_url +'bundle/'+task_id+'/'+ file,
-                                                 stream=True)  # Get a stream to the bundle file
-                download_response.raise_for_status()
-                filename = os.path.basename(cgi.parse_header(download_response.headers['Content-Disposition'])[1][
-                                                'filename'])  # Parse the name from Content-Disposition header
-                filepath = os.path.join(destDir, filename)  # Create output file path
-                with open(filepath, 'wb') as fp:  # Write file to dest dir
-                    for data in download_response.iter_content(chunk_size=8192):
-                        fp.write(data)
-
-                # parse out csv file
-                with open(filepath, 'r') as read_obj:
-                    # pass the file object to DictReader() to get the DictReader object
-                    csv_dict_reader = DictReader(read_obj)
-                    # iterate over each line as a ordered dictionary
-                    # for row in csv_dict_reader:
-                    #     # row variable is a dictionary that represents a row in csv
-                    #     print(row)
-                    # column_names = csv_dict_reader.fieldnames
-                    # print(column_names)
-# structure of CSV file
-# File Name,Dataset,aid,Date,Count,Minimum,Maximum,Range,Mean,Standard Deviation,Variance,Upper Quartile,Upper 1.5 IQR,Median,Lower 1.5 IQR,Lower Quartile
-# MOD11A2_006_LST_Day_1km_doy2018057_aid0001,LST_Day_1km,aid0001,2018-02-26,6803.0,297.38,311.6,"(297.38,311.6)",303.7146,1.7401,3.028,304.87,308.44,303.74,298.9,302.48
-# MOD11A2_006_LST_Day_1km_doy2018065_aid0001,LST_Day_1km,aid0001,2018-03-06,6807.0,296.16,310.72,"(296.16,310.72)",301.8998,1.796,3.2256,303.04,306.8,302.02,296.86,300.52
-# MOD11A2_006_LST_Day_1km_doy2018073_aid0001,LST_Day_1km,aid0001,2018-03-14,5213.0,295.9,310.22,"(295.9,310.22)",303.2248,1.9724,3.8905,304.78,308.98,303.08,297.78,301.98
-# MOD11A2_006_LST_Day_1km_doy2018081_aid0001,LST_Day_1km,aid0001,2018-03-22,1685.0,292.6,304.8,"(292.6,304.8)",299.7435,1.7759,3.1537,301.06,304.22,299.68,295.14,298.66
-# MOD11A2_006_LST_Day_1km_doy2018089_aid0001,LST_Day_1km,aid0001,2018-03-30,3423.0,296.82,306.86,"(296.82,306.86)",300.2546,1.2143,1.4745,300.88,302.98,300.16,297.4,299.48
-                # append statistics to json
-                    for row in csv_dict_reader:
-                        value = row['Mean']
-                        dateStr = row['Date'].replace('-','')
-                        #dateStr = startTime.strftime("%Y%m%d")
-                        jsonRecord = {'dataElement': data_element_id, 'period': dateStr, 'orgUnit': org_unit_id[task_id_to_name[task_id]], 'value': value}
-                        outputJson.append(jsonRecord)
-
+        download_data = {'appeears_token':token, 'appeears_url':appeears_url, 'data_element_id':data_element_id,'product':product,'tasks':tasks}
+        downloadResp = post(download_url, download_data, hdrs, 120.0)
+        outputJson = downloadResp.json()
+        if 'error' in outputJson.keys():
+            print("error downloading AppEEARS results: ", outputJson['error'])
+            exit(-1)
         print(outputJson)
             # process csv file and create output records, if csv stats file not found, data is missing
-
-        print("Downloading complete!")
+        print("AppEEARS Download complete!")
 
         #resp = logout(token)
     except Exception as e:
         print("Exception: ",e)
-
-    # logout
-    try:
-
-        # only do this if you are done with order, invalidates the token before expiration (48hrs)
-        # can no longer check status or retrieve bundles
-        resp = logout(token)
-    except Exception as e:
-        print("Exception: ", e)
 
 if __name__ == '__main__':
    main()

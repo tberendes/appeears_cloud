@@ -37,13 +37,13 @@ def lambda_handler(event, context):
                         headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                  'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                        body=json.dumps({'message': "missing json parameters"}), isBase64Encoded='false')
+                        body=json.dumps({'error': "missing json parameters"}), isBase64Encoded='false')
     else:
         return dict(statusCode='200',
                     headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                              'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                              'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                    body=json.dumps({'message': "missing event body"}), isBase64Encoded='false')
+                    body=json.dumps({'error': "missing event body"}), isBase64Encoded='false')
 
     dataset = event['dataset']
     org_unit = event['org_unit']
@@ -119,7 +119,7 @@ def lambda_handler(event, context):
         return dict(statusCode='200', headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
                                                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                                'Access-Control-Allow-Methods': 'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'},
-                    body=json.dumps({'message': "Error submitting appeears tasks "}), isBase64Encoded='false')
+                    body=json.dumps({'error': "Error submitting appeears tasks "}), isBase64Encoded='false')
 
     #print(task_list)
 
