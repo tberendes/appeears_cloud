@@ -15,7 +15,7 @@ import random
 from datetime import datetime
 
 #from util import load_json_from_s3, update_status_on_s3
-from appeears.appeears_util import login, post, logout
+from appeears_util import login, post, logout
 
 data_bucket = "mosquito-data"
 appeears_url = "https://lpdaacsvc.cr.usgs.gov/appeears/api/"
