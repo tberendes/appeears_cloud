@@ -23,7 +23,8 @@ def get(url, hdrs, timeout):
 
 def main():
 
-    payload = "appeears_payload_MOD11A2.json"
+    #payload = "appeears_payload_modis_ndvi.json"
+    #payload = "appeears_payload_modis_temp.json"
 
     with open(payload) as f:
         jsonData = json.load(f)
